@@ -19,7 +19,23 @@ public class QuanLyDoanhThuServer {
         List<HoaDon> HoaDonList = new ArrayList<>();
         try {
             Connection con = DBConnect.getConnection();
-            String sql = "select  MaHD ,NgayTao, MaHD, TongTien from HoaDon";
+            String sql = """
+                        WITH HoaDondoanhthu AS (
+                        SELECT 
+                        NgayTao AS Ngay,
+                        COUNT(MaHD) AS SoLuongHoaDon,
+                        SUM(TongTien) AS TongTien
+                        FROM HoaDon
+                        GROUP BY NgayTao
+                        )
+                        SELECT 
+                            ROW_NUMBER() OVER (ORDER BY Ngay) AS STT,
+                            Ngay,
+                            SoLuongHoaDon,
+                            TongTien
+                        FROM HoaDondoanhthu
+                        ORDER BY Ngay;
+                         """;
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {  
@@ -36,6 +52,8 @@ public class QuanLyDoanhThuServer {
         }
         return null;
     }
+    
+    
     
     
 }
